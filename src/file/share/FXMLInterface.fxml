@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="350.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="file.share.FXMLInterfaceController">
+   <children>
+      <Pane fx:id="panePrincipal" prefHeight="348.0" prefWidth="500.0" style="-fx-background-color: #FFFFFF;">
+         <children>
+            <Label layoutX="202.0" layoutY="36.0" text="REDE Share" textAlignment="CENTER" underline="true">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+            <Button fx:id="buttonFindFilePrincipal" layoutX="170.0" layoutY="80.0" mnemonicParsing="false" onAction="#eventButtonFindFilePrincipal" prefHeight="40.0" prefWidth="160.0" text="Buscar Arquivo" />
+            <Button fx:id="buttonShareFilePrincipal" layoutX="170.0" layoutY="130.0" mnemonicParsing="false" onAction="#eventButtonShareFilePrincipal" prefHeight="40.0" prefWidth="160.0" text="Compartilhar Arquivo" />
+            <Button fx:id="buttonExitPrincipal" layoutX="440.0" layoutY="310.0" mnemonicParsing="false" onAction="#eventButtonExitFilePrincipal" text="Sair" />
+         </children>
+      </Pane>
+      <Pane fx:id="paneShareFile" prefHeight="350.0" prefWidth="500.0" style="-fx-background-color: #FFFFFF;" visible="false">
+         <children>
+            <Button fx:id="buttonChooseFileShare" layoutX="176.0" layoutY="61.0" mnemonicParsing="false" onAction="#eventButtonChooseFileShare" prefHeight="40.0" prefWidth="150.0" text="Selecionar Arquivo" />
+            <Button fx:id="buttonShareShare" layoutX="176.0" layoutY="275.0" mnemonicParsing="false" onAction="#eventButtonShareFileShare" prefHeight="40.0" prefWidth="150.0" text="Compartilhar" />
+            <Button fx:id="buttonBackShare" layoutX="426.0" layoutY="310.0" mnemonicParsing="false" onAction="#eventButtonBackFileShare" text="Voltar" />
+         </children>
+      </Pane>
+      <Pane fx:id="paneDownloadFile" prefHeight="350.0" prefWidth="500.0" style="-fx-background-color: #FFFFFF;" visible="false">
+         <children>
+            <TableView fx:id="tableViewFileDownload" layoutX="10.0" layoutY="75.0" prefHeight="226.0" prefWidth="480.0">
+               <columns>
+                  <TableColumn fx:id="tableColumnNameDownload" prefWidth="214.0" text="Nome" />
+                  <TableColumn fx:id="tableColumnDateDownload" prefWidth="109.0" text="Data de Envio" />
+                  <TableColumn fx:id="tableColumnSizeDownload" prefWidth="77.0" text="Tamanho" />
+                  <TableColumn fx:id="tableColumnExtensionDownload" prefWidth="79.0" text="Extensão" />
+               </columns>
+            </TableView>
+            <TextField fx:id="textFieldFindFileDownload" layoutX="132.0" layoutY="40.0" promptText="Nome ou Hash" />
+            <Button fx:id="buttonFindFileDownload" layoutX="330.0" layoutY="40.0" mnemonicParsing="false" onAction="#eventButtonFindFileDownload" text="Procurar" />
+            <Button fx:id="buttonBackFileDownload" layoutX="427.0" layoutY="310.0" mnemonicParsing="false" onAction="#eventButtonBackDownload" text="Voltar" />
+            <Button fx:id="buttonDownloadFileDownload" layoutX="75.0" layoutY="310.0" mnemonicParsing="false" onAction="#eventButtonDownloadFileDownload" text="Baixar Arquivo" />
+            <Button fx:id="buttonRemoveFileDownload" layoutX="265.0" layoutY="310.0" mnemonicParsing="false" onAction="#eventButtonRemoveFileDownload" text="Remover Arquivo" />
+         </children>
+      </Pane>
+   </children>
+</AnchorPane>
