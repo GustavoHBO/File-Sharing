@@ -5,15 +5,27 @@
  */
 package file.share;
 
+import file.share.controller.Controller;
+import file.share.model.FileShared;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 /**
  *
@@ -76,10 +88,14 @@ public class FXMLInterfaceController implements Initializable {
     @FXML
     private Button buttonBackShare;
     
+    /* Statement the controller */
+    private Controller controller;
+    
+    File selectedFile;
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+        controller = Controller.getInstance();
     }    
     
                                 /* Method's Events */
@@ -149,8 +165,27 @@ public class FXMLInterfaceController implements Initializable {
      * Event Button select the file chose.
      */
     @FXML
-    private void eventButtonChooseFileShare(){
+    private void eventButtonChooseFileShare() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Selecionar Arquivo para Compartilhamento");
+        fileChooser.getExtensionFilters().addAll(new ExtensionFilter("Arquivos TXT", "*.txt"));
+        selectedFile = fileChooser.showOpenDialog(null);
         
+        if (selectedFile != null) {
+
+            Alert alertDialog = new Alert(Alert.AlertType.INFORMATION);
+            alertDialog.setTitle("Informação");
+            alertDialog.setHeaderText("Arquivo selecionado.");
+            alertDialog.setContentText("Arquivo pronto para ser compartilhado!");
+            alertDialog.showAndWait();
+            
+        } else {
+            Alert alertErro = new Alert(Alert.AlertType.ERROR);
+            alertErro.setTitle("Error");
+            alertErro.setHeaderText("Não foi selecionado nenhum arquivo.");
+            alertErro.setContentText("Selecione um arquivo para poder compartilhar!");
+            alertErro.showAndWait();
+        }
     }
     
     /**
@@ -158,7 +193,45 @@ public class FXMLInterfaceController implements Initializable {
      */
     @FXML
     private void eventButtonShareFileShare(){
-        
+        FileShared fileShared;
+        if (selectedFile != null) {
+
+            /* Obtain the name and extension */
+            String extension;
+            String name = selectedFile.getName();
+            extension = name.substring(name.lastIndexOf("."));
+            name = name.substring(0, name.lastIndexOf("."));
+            
+            /* Obtain the date */
+            SimpleDateFormat formatDate = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            String date = formatDate.format(new Date());
+            
+            /*Creating the file*/
+            fileShared = new FileShared(selectedFile.getAbsolutePath(), name, extension, date, (int)selectedFile.length());
+            System.out.println((int)selectedFile.length());
+            try {
+                controller.registerFile(fileShared);
+            } catch (UnknownHostException ex) {
+                Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                alertErro.setTitle("Error");
+                alertErro.setHeaderText("Host não reconhecido.");
+                alertErro.setContentText("UnknownHostException");
+                alertErro.showAndWait();
+            } catch (IOException ex) {
+                Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                alertErro.setTitle("Error");
+                alertErro.setHeaderText("Ocorreu um erro, reinicio a aplicação.");
+                alertErro.setContentText("IOException");
+                alertErro.showAndWait();
+            }
+            
+        } else {
+            Alert alertErro = new Alert(Alert.AlertType.ERROR);
+            alertErro.setTitle("Error");
+            alertErro.setHeaderText("Não foi selecionado nenhum arquivo.");
+            alertErro.setContentText("Selecione um arquivo para poder compartilhar!");
+            alertErro.showAndWait();
+        }
     }
     
     /**
