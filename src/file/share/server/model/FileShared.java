@@ -22,11 +22,12 @@ package file.share.server.model;
  */
 public class FileShared {
     
+    private int hash;
+    private int size;
     private String way;
     private String name;
     private String extension;
     private String date;
-    private String size;
     
     /**
      * Constructor Default.
@@ -43,12 +44,13 @@ public class FileShared {
      * @param date - Date of the file.
      * @param size -Size of the file.
      */
-    public FileShared(String way, String name, String extension, String date, String size){
+    public FileShared(String way, String name, String extension, String date, int size){
         this.way = way;
         this.name = name;
         this.extension = extension;
         this.date = date;
         this.size = size;
+        this.hash = (name + way).hashCode();
     }
     
     /**
@@ -96,14 +98,14 @@ public class FileShared {
     /**
      * @return the size
      */
-    public String getSize() {
+    public int getSize() {
         return size;
     }
 
     /**
      * @param size the size to set
      */
-    public void setSize(String size) {
+    public void setSize(int size) {
         this.size = size;
     }
 
@@ -119,5 +121,19 @@ public class FileShared {
      */
     public void setWay(String way) {
         this.way = way;
+    }
+
+    /**
+     * @return the hash
+     */
+    public int getHash() {
+        return hash;
+    }
+
+    /**
+     * @param hash the hash to set
+     */
+    public void setHash(int hash) {
+        this.hash = hash;
     }
 }
