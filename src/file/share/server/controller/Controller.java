@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 
 
 /**
@@ -22,6 +23,8 @@ public class Controller {
     private static Controller controller; // Statement controller.
 
     private ArrayList<FileShared> listFile;
+    
+    private Map exemple;
     
     private final String TOKENSEPARATOR = "!=";
     
@@ -54,6 +57,85 @@ public class Controller {
         controller = null;
     }
                                                 /* End Singleton */
+    
+                                                /* Starting the methods of control */
+    
+    /**
+     * Get the @param and register.
+     * @param fileData - Data of file to save.
+     * @return 0 - If the data wasn't saved, 1 - If the data was saved.
+     * @throws java.io.IOException
+     */
+    public int registerFile(String fileData) throws IOException {
+
+        FileShared fileShared;
+        String[] fileSplited = fileData.split(TOKENSEPARATOR);
+        
+        if (listFile == null) {
+            listFile = new ArrayList<>();
+        }
+        
+        fileShared = new FileShared(fileSplited[0], fileSplited[1], fileSplited[2], fileSplited[3], Integer.parseInt(fileSplited[4].trim()));
+        if(listFile.contains(fileShared)){
+            return 0;
+        } else {
+            listFile.add(fileShared);
+            saveAllData();
+            return 1;
+        }
+    }
+    
+    /**
+     * Return the file with the code hash @param
+     * @param hash - Code of the file.
+     * @return null - If the file not exists, file - If the file exists.
+     */
+    public FileShared findFileHash(int hash){
+        
+        Iterator<FileShared> it = listFile.iterator();
+        FileShared file;
+        
+        while(it.hasNext()){
+            file = it.next();
+            if(file.getHash() == hash){
+                return file;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Return a list with files with @param same.
+     * @param name - Name of the file.
+     * @return null - If haven't anything file with this name, filesList - List of archives with the @param equals.
+     */
+    public ArrayList<FileShared> findFilesName(String name) {
+        ArrayList<FileShared> filesList = null;
+        Iterator<FileShared> it = listFile.iterator();
+        FileShared file;
+
+        while (it.hasNext()) {
+            file = it.next();
+            if (file.getName().toUpperCase().equals(name.toUpperCase())) {
+                if (filesList == null) {
+                    filesList = new ArrayList();
+                }
+                filesList.add(file);
+            }
+        }
+        return filesList;
+    }
+    
+    /**
+     * Remove a file using the @param for find the archive.
+     * @param hash - Identifier of file.
+     * @return 0 - If the file wasn't removed, 1 - If the file was removed.
+     */
+    public int removeFile(int hash){
+        return listFile.remove(findFileHash(hash)) ? 1 : 0;
+    }
+    
+                                                /* Ending the methods of control */
     
                                                /* Methods in storage */
     /**
@@ -115,7 +197,7 @@ public class Controller {
      * @throws IOException - If the file can't to be read.
      */
     public void readAllData() throws IOException {
-        File file = new File("./backup/deposit/product/data.im");
+        File file = new File("./file/data.f");
         if (file.exists()) {
             FileReader fileReader;
             fileReader = new FileReader(file);// FileReader it read the archive.
@@ -132,7 +214,7 @@ public class Controller {
             while (bufferedReader.ready()) {
                 dataLine = bufferedReader.readLine();
                 dataLineSplited = dataLine.split(TOKENSEPARATOR);
-                fileShared = new FileShared(dataLineSplited[0], dataLineSplited[1], dataLineSplited[2], dataLineSplited[3], dataLineSplited[4]);
+                fileShared = new FileShared(dataLineSplited[0], dataLineSplited[1], dataLineSplited[2], dataLineSplited[3], Integer.parseInt(dataLineSplited[4].trim()));
                 listFile.add(fileShared);
             }
             bufferedReader.close();

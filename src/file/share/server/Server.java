@@ -23,6 +23,8 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -34,6 +36,17 @@ public class Server {
     private DatagramSocket serverSocket;
     private final int PORTSERVER = 55600;
     private final int LENGTHCODEPROTOCOL = 2;
+    
+    public static void main (String args[]){
+        try {
+            System.out.println("Servidor Iniciado!");
+            new Server().startServerUDP();
+        } catch (UnknownHostException ex) {
+            System.out.println("FATAL ERROR: Não foi possível iniciar o servidor!");
+        } catch (IOException ex) {
+            System.out.println("FATAL ERROR: Não foi possível iniciar o servidor!");
+        }
+    }
     
     /**
      * Start the server, and register him on cloud.
@@ -53,6 +66,8 @@ public class Server {
                 
                 Runnable run;
                 run = new Runnable() {
+                    InetAddress ipSender;
+                    int portSender;
                     @Override
                     public void run() {
                         String data = new String(receivePacket.getData());
@@ -60,8 +75,8 @@ public class Server {
                     }
                     
                     private void identifyAction(String data) {
-                        InetAddress ipSender = receivePacket.getAddress();
-                        int portSender = receivePacket.getPort();
+                        ipSender = receivePacket.getAddress();
+                        portSender = receivePacket.getPort();
                         String initCode = data.substring(0, LENGTHCODEPROTOCOL);
                         String endCode;
                         int lastCodeIndex = data.lastIndexOf(initCode);
@@ -70,11 +85,19 @@ public class Server {
                         }
                         endCode = data.substring(lastCodeIndex, lastCodeIndex + LENGTHCODEPROTOCOL);
                         if (initCode.equals(endCode)) {
-                            String[] replySplited;
+                            ipSender = receivePacket.getAddress();
+                            portSender = receivePacket.getPort();
                             data = data.substring(LENGTHCODEPROTOCOL, lastCodeIndex);
                             System.out.println("Recebido: " + data);
                             switch (initCode) {
                                 case "00":// Test the connection with it.
+                                    break;
+                                case "01":// Register file
+                                    try {
+                                        sendDatagramPacket("0x01" + controller.registerFile(data) + "0x01", ipSender, portSender);
+                                    } catch (IOException ex) {
+                                        System.out.println("ERROR: Não foi possível salvar o cadastro.");
+                                    }
                                     break;
                                 default:
                                     break;
@@ -86,6 +109,24 @@ public class Server {
             } catch (IOException ex) {
                 System.out.println("Não foi possível iniciar o servidor.");
             }
+        }
+    }
+    
+    /**
+     * Send an data string for a client with ip and a port.
+     * @param data - Data to send.
+     * @param ip - Ip of destiny.
+     * @param port - Port of destiny.
+     */
+    private void sendDatagramPacket(String data, InetAddress ip, int port) {
+        try {
+            DatagramPacket sendPacket;
+            byte[] sendData = data.getBytes();
+            sendPacket = new DatagramPacket(sendData, sendData.length, ip, port);
+            serverSocket.send(sendPacket);
+            System.out.println("Enviando: " + data);
+        } catch (IOException ex) {
+            System.out.println("ERROR: Não foi possível enviar um pacote.");
         }
     }
 }
