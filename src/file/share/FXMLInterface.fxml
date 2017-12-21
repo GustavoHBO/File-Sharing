@@ -23,8 +23,8 @@
       </Pane>
       <Pane fx:id="paneShareFile" prefHeight="350.0" prefWidth="500.0" style="-fx-background-color: #FFFFFF;" visible="false">
          <children>
-            <Button fx:id="buttonChooseFileShare" layoutX="176.0" layoutY="61.0" mnemonicParsing="false" onAction="#eventButtonChooseFileShare" prefHeight="40.0" prefWidth="150.0" text="Selecionar Arquivo" />
-            <Button fx:id="buttonShareShare" layoutX="176.0" layoutY="275.0" mnemonicParsing="false" onAction="#eventButtonShareFileShare" prefHeight="40.0" prefWidth="150.0" text="Compartilhar" />
+            <Button fx:id="buttonChooseFileShare" layoutX="176.0" layoutY="101.0" mnemonicParsing="false" onAction="#eventButtonChooseFileShare" prefHeight="40.0" prefWidth="150.0" text="Selecionar Arquivo" />
+            <Button fx:id="buttonShareShare" layoutX="176.0" layoutY="175.0" mnemonicParsing="false" onAction="#eventButtonShareFileShare" prefHeight="40.0" prefWidth="150.0" text="Compartilhar" />
             <Button fx:id="buttonBackShare" layoutX="426.0" layoutY="310.0" mnemonicParsing="false" onAction="#eventButtonBackFileShare" text="Voltar" />
          </children>
       </Pane>

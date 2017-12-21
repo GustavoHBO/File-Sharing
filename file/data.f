@@ -1,0 +1,2 @@
+192.168.1.2!=/home/gustavo/MEGAsync/UEFS/Disciplinas/MI - Concorrencia e Conectividade/PBL3/File Sharing/Relatório 2017.txt!=Relatório 2017!=.txt!=21/12/2017 04:37:19!=32
+192.168.1.2!=/home/gustavo/Pictures/Screenshot from 2017-11-15 20-02-08.png!=Screenshot from 2017-11-15 20-02-08!=.png!=21/12/2017 04:49:47!=45689

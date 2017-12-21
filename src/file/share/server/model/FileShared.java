@@ -29,6 +29,8 @@ public class FileShared {
     private String extension;
     private String date;
     
+    public String ipHost;
+    
     /**
      * Constructor Default.
      */
@@ -38,13 +40,17 @@ public class FileShared {
     
     /**
      * Constructor of the class.
+     * @param ipHost - Ip of provider.
      * @param way - Way of file.
      * @param name - Name of the file.
      * @param extension - Extension of the file.
      * @param date - Date of the file.
      * @param size -Size of the file.
      */
-    public FileShared(String way, String name, String extension, String date, int size){
+    public FileShared(String ipHost, String way, String name, String extension, String date, int size){
+        
+        this.ipHost = ipHost;
+        
         this.way = way;
         this.name = name;
         this.extension = extension;
@@ -135,5 +141,19 @@ public class FileShared {
      */
     public void setHash(int hash) {
         this.hash = hash;
+    }
+
+    /**
+     * @return the ipHost
+     */
+    public String getIpHost() {
+        return ipHost;
+    }
+
+    /**
+     * @param ipHost the ipHost to set
+     */
+    public void setIpHost(String ipHost) {
+        this.ipHost = ipHost;
     }
 }

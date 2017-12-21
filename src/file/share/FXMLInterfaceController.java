@@ -7,15 +7,24 @@ package file.share;
 
 import file.share.controller.Controller;
 import file.share.model.FileShared;
+import file.share.model.FileSharedProperty;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -68,17 +77,20 @@ public class FXMLInterfaceController implements Initializable {
     
                          /* TableView */
     @FXML
-    private TableView tableViewFileDownload;
+    private TableView<FileSharedProperty> tableViewFileDownload;
+    
+                         /* TableView */
+    private ObservableList<FileSharedProperty> observableListDownload;
     
                          /* TableView */
     @FXML
-    private TableColumn tableColumnNameDownload;
+    private TableColumn<FileSharedProperty, String> tableColumnNameDownload;
     @FXML
-    private TableColumn tableColumnDateDownload;
+    private TableColumn<FileSharedProperty, String> tableColumnDateDownload;
     @FXML
-    private TableColumn tableColumnSizeDownload;
+    private TableColumn<FileSharedProperty, String> tableColumnSizeDownload;
     @FXML
-    private TableColumn tableColumnExtensionDownload;
+    private TableColumn<FileSharedProperty, String> tableColumnExtensionDownload;
     
                     /* Pane Share File */
     @FXML
@@ -96,6 +108,11 @@ public class FXMLInterfaceController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         controller = Controller.getInstance();
+        try {
+            controller.upServer();
+        } catch (RemoteException ex) {
+            System.out.println("Error: Não foi possível iniciar o servidor!");
+        }
     }    
     
                                 /* Method's Events */
@@ -131,16 +148,80 @@ public class FXMLInterfaceController implements Initializable {
      * Event Button find the file with name or hash in text field.
      */
     @FXML
-    private void eventButtonFindFileDownload(){
-        
+    private void eventButtonFindFileDownload() {
+        try {
+            if (controller.findFileServer(textFieldFindFileDownload.getText().trim()) == 0) {
+                Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                alertErro.setTitle("Error");
+                alertErro.setHeaderText("Arquivo não encontrado.");
+                alertErro.setContentText("O arquivo que você procura não está\nsendo compartilhado.");
+                alertErro.showAndWait();
+            }
+            loadTableFile();
+        } catch (SocketTimeoutException ex) {
+            Alert alertErro = new Alert(Alert.AlertType.ERROR);
+            alertErro.setTitle("Error");
+            alertErro.setHeaderText("O servidor não respondeu à solicitação,\ntente novamente.");
+            alertErro.setContentText("ERROR: SocketTimeoutException");
+            alertErro.showAndWait();
+        } catch (UnknownHostException ex) {
+            Alert alertErro = new Alert(Alert.AlertType.ERROR);
+            alertErro.setTitle("Error");
+            alertErro.setHeaderText("Host não reconhecido.");
+            alertErro.setContentText("ERROR: UnknownHostException");
+            alertErro.showAndWait();
+        } catch (IOException ex) {
+            Alert alertErro = new Alert(Alert.AlertType.ERROR);
+            alertErro.setTitle("Error");
+            alertErro.setHeaderText("Ocorreu um erro, tente novamente.");
+            alertErro.setContentText("ERROR: IOException");
+            alertErro.showAndWait();
+        }
     }
     
     /**
      * Event Button Download the file selected.
      */
     @FXML
-    private void eventButtonDownloadFileDownload(){
+    private void eventButtonDownloadFileDownload() {
         
+        FileSharedProperty fileProperty = tableViewFileDownload.getSelectionModel().getSelectedItem();
+        if (fileProperty != null) {
+            try {
+                if (controller.getFile(fileProperty) == 0) {
+                    Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                    alertErro.setTitle("Error");
+                    alertErro.setHeaderText("A transferência não foi completada");
+                    alertErro.setContentText("Error: NotBoundException");
+                    alertErro.showAndWait();
+                } else {
+                    Alert alertDialog = new Alert(Alert.AlertType.INFORMATION);
+                    alertDialog.setTitle("Informação");
+                    alertDialog.setHeaderText("Arquivo baixado.");
+                    alertDialog.setContentText("Verifique a sua pasta download.");
+                    alertDialog.showAndWait();
+                    loadTableFile();
+                }
+            } catch (NotBoundException ex) {
+                Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                alertErro.setTitle("Error");
+                alertErro.setHeaderText("A transferência não foi completada");
+                alertErro.setContentText("Error: NotBoundException");
+                alertErro.showAndWait();
+            } catch (RemoteException ex) {
+                Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                alertErro.setTitle("Error");
+                alertErro.setHeaderText("A transferência não foi completada");
+                alertErro.setContentText("Error: RemoteException");
+                alertErro.showAndWait();
+            } catch (IOException ex) {
+                Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                alertErro.setTitle("Error");
+                alertErro.setHeaderText("A transferência não foi completada");
+                alertErro.setContentText("Error: IOException");
+                alertErro.showAndWait();
+            }
+        }
     }
     
     /**
@@ -148,7 +229,43 @@ public class FXMLInterfaceController implements Initializable {
      */
     @FXML
     private void eventButtonRemoveFileDownload(){
-        
+        FileSharedProperty fileProperty = tableViewFileDownload.getSelectionModel().getSelectedItem();
+        if(fileProperty != null){
+            try {
+                if(controller.removeFile(fileProperty.getHash().get()) == 1){
+                    Alert alertDialog = new Alert(Alert.AlertType.INFORMATION);
+                    alertDialog.setTitle("Informação");
+                    alertDialog.setHeaderText("Arquivo removido.");
+                    alertDialog.setContentText("O arquivo não será mais compartilhado!");
+                    alertDialog.showAndWait();
+                    loadTableFile();
+                } else {
+                    Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                    alertErro.setTitle("Error");
+                    alertErro.setHeaderText("Arquivo não removido.");
+                    alertErro.setContentText("O arquivo não pôde ser removido.");
+                    alertErro.showAndWait();
+                }
+            } catch (SocketTimeoutException ex) {
+                Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                alertErro.setTitle("Error");
+                alertErro.setHeaderText("O servidor não respondeu à solicitação, tente novamente.");
+                alertErro.setContentText("ERROR: SocketTimeoutException");
+                alertErro.showAndWait();
+            } catch (UnknownHostException ex) {
+                Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                alertErro.setTitle("Error");
+                alertErro.setHeaderText("Host não reconhecido.");
+                alertErro.setContentText("ERROR: UnknownHostException");
+                alertErro.showAndWait();
+            } catch (IOException ex) {
+                Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                alertErro.setTitle("Error");
+                alertErro.setHeaderText("Ocorreu um erro, tente novamente.");
+                alertErro.setContentText("ERROR: IOException");
+                alertErro.showAndWait();
+            }
+        }
     }
     
     /**
@@ -159,6 +276,31 @@ public class FXMLInterfaceController implements Initializable {
         paneDownloadFile.setVisible(false);
     }
             
+                                    /* TableView */
+    /**
+     * Load the files on table view on pane Download.
+     */
+    private void loadTableFile(){
+        Iterator<FileShared> it;
+        FileShared fileShared;
+        it = controller.getListFiles().iterator();
+        
+        observableListDownload = FXCollections.observableArrayList();
+        while(it.hasNext()){
+            fileShared = it.next();
+            System.out.println("Colocando o arquivo: " + fileShared.getHash());
+            if(it.hasNext())
+                System.out.println("Tem ainda");
+            observableListDownload.add(new FileSharedProperty(fileShared.getIpHost(), Integer.toString(fileShared.getHash()), fileShared.getWay(), 
+            fileShared.getName(), fileShared.getExtension(), fileShared.getDate(), Integer.toString(fileShared.getSize())));
+        }
+        tableColumnNameDownload.setCellValueFactory(cellData -> cellData.getValue().getName());
+        tableColumnExtensionDownload.setCellValueFactory(cellData -> cellData.getValue().getExtension());
+        tableColumnDateDownload.setCellValueFactory(cellData -> cellData.getValue().getDate());
+        tableColumnSizeDownload.setCellValueFactory(cellData -> cellData.getValue().getSize());
+        tableViewFileDownload.setItems(observableListDownload);
+    }
+    
                                     /* Share */
     
     /**
@@ -168,7 +310,7 @@ public class FXMLInterfaceController implements Initializable {
     private void eventButtonChooseFileShare() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Selecionar Arquivo para Compartilhamento");
-        fileChooser.getExtensionFilters().addAll(new ExtensionFilter("Arquivos TXT", "*.txt"));
+        fileChooser.getExtensionFilters().addAll(new ExtensionFilter(".txt", "*.txt"), new ExtensionFilter("Todos arquivos", "*"));
         selectedFile = fileChooser.showOpenDialog(null);
         
         if (selectedFile != null) {
@@ -192,7 +334,7 @@ public class FXMLInterfaceController implements Initializable {
      * Event Button share the file chose.
      */
     @FXML
-    private void eventButtonShareFileShare(){
+    private void eventButtonShareFileShare() {
         FileShared fileShared;
         if (selectedFile != null) {
 
@@ -201,30 +343,68 @@ public class FXMLInterfaceController implements Initializable {
             String name = selectedFile.getName();
             extension = name.substring(name.lastIndexOf("."));
             name = name.substring(0, name.lastIndexOf("."));
-            
+
             /* Obtain the date */
             SimpleDateFormat formatDate = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
             String date = formatDate.format(new Date());
-            
+
             /*Creating the file*/
-            fileShared = new FileShared(selectedFile.getAbsolutePath(), name, extension, date, (int)selectedFile.length());
-            System.out.println((int)selectedFile.length());
+            String myIp = "";
+            Enumeration e;
             try {
-                controller.registerFile(fileShared);
-            } catch (UnknownHostException ex) {
+                e = NetworkInterface.getNetworkInterfaces();
+                while (e.hasMoreElements()) {
+                    NetworkInterface i = (NetworkInterface) e.nextElement();
+                    Enumeration ds = i.getInetAddresses();
+                    while (ds.hasMoreElements()) {
+                        InetAddress myself = (InetAddress) ds.nextElement();
+                        if (!myself.isLoopbackAddress() && myself.isSiteLocalAddress()) {
+                            myIp = myself.getHostAddress();
+                        }
+                    }
+                }
+
+                fileShared = new FileShared(myIp, selectedFile.getAbsolutePath(), name, extension, date, (int) selectedFile.length());
+                try {
+                    if (controller.registerFile(fileShared) == 1) {
+                        Alert alertDialog = new Alert(Alert.AlertType.INFORMATION);
+                        alertDialog.setTitle("Informação");
+                        alertDialog.setHeaderText("Arquivo compartilhado.");
+                        alertDialog.setContentText("Arquivo pronto para ser baixado!");
+                        alertDialog.showAndWait();
+                    } else {
+                        Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                        alertErro.setTitle("Error");
+                        alertErro.setHeaderText("O arquivo não foi adicionado.");
+                        alertErro.setContentText("O arquivo selecionado não pôde ser compartilhado.");
+                        alertErro.showAndWait();
+                    }
+                } catch (SocketTimeoutException ex) {
+                    Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                    alertErro.setTitle("Error");
+                    alertErro.setHeaderText("O servidor não respondeu à solicitação, tente novamente.");
+                    alertErro.setContentText("ERROR: SocketTimeoutException");
+                    alertErro.showAndWait();
+                } catch (UnknownHostException ex) {
+                    Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                    alertErro.setTitle("Error");
+                    alertErro.setHeaderText("Host não reconhecido.");
+                    alertErro.setContentText("ERROR: UnknownHostException");
+                    alertErro.showAndWait();
+                } catch (IOException ex) {
+                    Alert alertErro = new Alert(Alert.AlertType.ERROR);
+                    alertErro.setTitle("Error");
+                    alertErro.setHeaderText("Ocorreu um erro, tente novamente.");
+                    alertErro.setContentText("ERROR: IOException");
+                    alertErro.showAndWait();
+                }
+            } catch (SocketException ex) {
                 Alert alertErro = new Alert(Alert.AlertType.ERROR);
                 alertErro.setTitle("Error");
-                alertErro.setHeaderText("Host não reconhecido.");
-                alertErro.setContentText("UnknownHostException");
-                alertErro.showAndWait();
-            } catch (IOException ex) {
-                Alert alertErro = new Alert(Alert.AlertType.ERROR);
-                alertErro.setTitle("Error");
-                alertErro.setHeaderText("Ocorreu um erro, reinicio a aplicação.");
-                alertErro.setContentText("IOException");
+                alertErro.setHeaderText("Não foi possível compartilhar o arquivo.");
+                alertErro.setContentText("ERROR: SocketException");
                 alertErro.showAndWait();
             }
-            
         } else {
             Alert alertErro = new Alert(Alert.AlertType.ERROR);
             alertErro.setTitle("Error");

@@ -75,14 +75,67 @@ public class Controller {
             listFile = new ArrayList<>();
         }
         
-        fileShared = new FileShared(fileSplited[0], fileSplited[1], fileSplited[2], fileSplited[3], Integer.parseInt(fileSplited[4].trim()));
-        if(listFile.contains(fileShared)){
+        fileShared = new FileShared(fileSplited[0], fileSplited[1], fileSplited[2], fileSplited[3], fileSplited[4], Integer.parseInt(fileSplited[5].trim()));
+        if(findFileHash(fileShared.getHash()) != null){
             return 0;
         } else {
             listFile.add(fileShared);
             saveAllData();
             return 1;
         }
+    }
+    
+    /**
+     * Remove a file using the @param for find the archive.
+     * @param hash - Identifier of file.
+     * @return 0 - If the file wasn't removed, 1 - If the file was removed.
+     * @throws IOException - If the data was not be removed.
+     */
+    public int removeFile(int hash) throws IOException{
+        saveAllData();
+        return listFile.remove(findFileHash(hash)) ? 1 : 0;
+    }
+    
+    /**
+     * Get the files with identifier equal on the list.
+     * @param id - Identifier archive, hash code or name.
+     * @return null - If haven't files, data - Data formated to send.
+     */
+    public String getFilesId(String id){
+        String data = "";
+        FileShared fileShared;
+        ArrayList<FileShared> list;
+        Iterator<FileShared> it;
+
+        if (id.trim().isEmpty()) {
+            list = listFile;
+        } else {
+            list = findFilesName(id);
+        }
+        if (list == null) {
+            return data;
+        }
+
+        it = list.iterator();
+
+        while (it.hasNext()) {
+            fileShared = it.next();
+            data += fileShared.getIpHost();
+            data += TOKENSEPARATOR;
+            data += fileShared.getWay();
+            data += TOKENSEPARATOR;
+            data += fileShared.getName();
+            data += TOKENSEPARATOR;
+            data += fileShared.getExtension();
+            data += TOKENSEPARATOR;
+            data += fileShared.getDate();
+            data += TOKENSEPARATOR;
+            data += fileShared.getSize();
+            if (it.hasNext()) {
+                data += TOKENSEPARATOR;
+            }
+        }
+        return data;
     }
     
     /**
@@ -116,7 +169,7 @@ public class Controller {
 
         while (it.hasNext()) {
             file = it.next();
-            if (file.getName().toUpperCase().equals(name.toUpperCase())) {
+            if (file.getName().toUpperCase().contains(name.toUpperCase()) || Integer.toString(file.getHash()).equals(name)) {
                 if (filesList == null) {
                     filesList = new ArrayList();
                 }
@@ -126,18 +179,9 @@ public class Controller {
         return filesList;
     }
     
-    /**
-     * Remove a file using the @param for find the archive.
-     * @param hash - Identifier of file.
-     * @return 0 - If the file wasn't removed, 1 - If the file was removed.
-     */
-    public int removeFile(int hash){
-        return listFile.remove(findFileHash(hash)) ? 1 : 0;
-    }
-    
                                                 /* Ending the methods of control */
     
-                                               /* Methods in storage */
+                                                      /* Methods in storage */
     /**
      * Save the data in an archive .im
      * @return 0 - If the list is null or empty, 1 case the data was save.
@@ -172,6 +216,8 @@ public class Controller {
             it = listFile.iterator();
             while (it.hasNext()) {
                 fileShared = it.next();
+                bw.write(fileShared.getIpHost());
+                bw.write(TOKENSEPARATOR);
                 bw.write(fileShared.getWay());
                 bw.write(TOKENSEPARATOR);
                 bw.write(fileShared.getName());
@@ -180,7 +226,7 @@ public class Controller {
                 bw.write(TOKENSEPARATOR);
                 bw.write(fileShared.getDate());
                 bw.write(TOKENSEPARATOR);
-                bw.write(fileShared.getSize());
+                bw.write(Integer.toString(fileShared.getSize()));
                 if(it.hasNext()){// If have next, then create new line for next product.
                     bw.newLine();
                 }
@@ -214,7 +260,7 @@ public class Controller {
             while (bufferedReader.ready()) {
                 dataLine = bufferedReader.readLine();
                 dataLineSplited = dataLine.split(TOKENSEPARATOR);
-                fileShared = new FileShared(dataLineSplited[0], dataLineSplited[1], dataLineSplited[2], dataLineSplited[3], Integer.parseInt(dataLineSplited[4].trim()));
+                fileShared = new FileShared(dataLineSplited[0], dataLineSplited[1], dataLineSplited[2], dataLineSplited[3], dataLineSplited[4], Integer.parseInt(dataLineSplited[5].trim()));
                 listFile.add(fileShared);
             }
             bufferedReader.close();

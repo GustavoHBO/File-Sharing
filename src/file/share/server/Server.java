@@ -23,8 +23,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -57,10 +55,11 @@ public class Server {
     private void startServerUDP() throws SocketException, UnknownHostException, IOException {
         controller = Controller.getInstance();
         serverSocket = new DatagramSocket(PORTSERVER); // Start the ServerSocket on port selected.
-        byte[] receiveData = new byte[1024]; // Array of the bytes to storage the datagram received.
+       
         
         while (true) {
             try {
+                 byte[] receiveData = new byte[1024]; // Array of the bytes to storage the datagram received.
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
                 serverSocket.receive(receivePacket);
                 
@@ -98,6 +97,17 @@ public class Server {
                                     } catch (IOException ex) {
                                         System.out.println("ERROR: Não foi possível salvar o cadastro.");
                                     }
+                                    break;
+                                case "02":// Remove file
+                                    try {
+                                        sendDatagramPacket("0x02" + controller.removeFile(Integer.parseInt(data)) + "0x02", ipSender, portSender);
+                                    } catch (IOException ex) {
+                                        System.out.println("ERROR: Não foi possível salvar a remoção..");
+                                    }
+
+                                    break;
+                                case "03":// Get files
+                                    sendDatagramPacket("0x03" + controller.getFilesId(data) + "0x03", ipSender, portSender);
                                     break;
                                 default:
                                     break;
